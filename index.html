@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Your AI Second Brain — A Practical Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { dark: '#1a2942', darker: '#0f1b2e', gold: '#ffd700', coral: '#ff6b6b', blue: '#87ceeb', green: '#98fb98', lavender: '#e6e6fa', peach: '#ffdab9', lime: '#bfff00' },
+                    },
+                    fontFamily: { heading: ['Oswald', 'sans-serif'], body: ['Prompt', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Prompt', sans-serif; background: #0f1b2e; color: #e2e8f0; scroll-behavior: smooth; }
+        h1, h2, h3, h4, h5 { font-family: 'Oswald', sans-serif; }
+        .glass { background: rgba(26, 41, 66, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.15); }
+        .glass-dark { background: rgba(15, 27, 46, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.1); }
+        .nav-item.active { border-left-color: #ffd700; color: #ffd700; font-weight: 600; }
+        .principle-card { transition: all 0.3s ease; }
+        .principle-card:hover { transform: translateY(-2px); border-color: rgba(255, 215, 0, 0.4); }
+        .step-num { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 1.25rem; font-weight: 700; flex-shrink: 0; }
+        .file-tree { font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; line-height: 1.8; }
+        .file-tree .folder { color: #ffd700; }
+        .file-tree .file { color: #94a3b8; }
+        .file-tree .comment { color: #475569; }
+        .expandable { cursor: pointer; }
+        .expandable-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        .expandable-content.open { max-height: 2000px; }
+        .component-detail { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .expandable .arrow { transition: transform 0.3s; display: inline-block; }
+        .expandable.open .arrow { transform: rotate(90deg); }
+        blockquote { border-left: 3px solid #ffd700; padding-left: 16px; color: #94a3b8; font-style: italic; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.2); border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden bg-brand-dark border-b border-brand-gold/20 p-4 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="text-lg font-heading text-brand-gold">AI SECOND BRAIN</h1>
+        <button id="mobile-menu-btn" class="text-slate-300 hover:text-brand-gold text-2xl" onclick="toggleMobileMenu()">☰</button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden fixed inset-0 bg-brand-darker/95 z-40 flex flex-col items-center justify-center space-y-5 text-lg md:hidden">
+        <button onclick="go('intro')" class="text-slate-300 hover:text-brand-gold">Introduction</button>
+        <button onclick="go('why')" class="text-slate-300 hover:text-brand-gold">Why Build This</button>
+        <button onclick="go('architecture')" class="text-slate-300 hover:text-brand-gold">Architecture</button>
+        <button onclick="go('identity')" class="text-slate-300 hover:text-brand-gold">The Identity Layer</button>
+        <button onclick="go('skills')" class="text-slate-300 hover:text-brand-gold">Skills & Agents</button>
+        <button onclick="go('isolation')" class="text-slate-300 hover:text-brand-gold">Context Isolation</button>
+        <button onclick="go('connections')" class="text-slate-300 hover:text-brand-gold">Live Connections</button>
+        <button onclick="go('start')" class="text-slate-300 hover:text-brand-gold">Getting Started</button>
+        <button onclick="toggleMobileMenu()" class="mt-6 text-sm text-slate-500">Close</button>
+    </div>
+
+    <!-- Sidebar -->
+    <nav id="sidebar" class="hidden md:flex flex-col w-64 bg-brand-dark border-r border-brand-gold/20 h-screen sticky top-0 overflow-y-auto">
+        <div class="p-6 border-b border-brand-gold/20">
+            <h1 class="text-xl font-heading font-bold text-brand-gold tracking-wide">BUILD YOUR<br>AI SECOND BRAIN</h1>
+            <p class="text-xs text-slate-400 mt-2">A practical guide to building<br>an AI system that thinks like you</p>
+        </div>
+        <div class="flex flex-col py-4 space-y-1">
+            <button onclick="go('intro')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">1. Introduction</button>
+            <button onclick="go('why')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">2. Why Build This</button>
+            <button onclick="go('architecture')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">3. Architecture</button>
+            <button onclick="go('identity')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">4. The Identity Layer</button>
+            <button onclick="go('skills')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">5. Skills & Agents</button>
+            <button onclick="go('isolation')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">6. Context Isolation</button>
+            <button onclick="go('connections')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">7. Live Connections</button>
+            <button onclick="go('start')" class="nav-item text-left px-6 py-3 text-slate-400 hover:text-slate-200 border-l-4 border-transparent transition-all text-sm">8. Getting Started</button>
+        </div>
+        <div class="mt-auto p-6 border-t border-brand-gold/10">
+            <div class="text-xs text-slate-500">By <a href="https://www.linkedin.com/in/guuswitjes/" class="text-brand-gold/80 hover:text-brand-gold hover:underline" target="_blank">Guus Witjes</a></div>
+            <div class="text-xs text-brand-gold/60"><a href="https://stepaheadai.substack.com/" class="hover:text-brand-gold hover:underline" target="_blank">Step Ahead AI</a></div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+        <div class="max-w-3xl mx-auto px-6 py-10 md:py-16">
+
+            <!-- Section 1: Introduction -->
+            <section id="intro" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">The Concept</span>
+                <h2 class="text-4xl md:text-5xl font-heading font-bold text-white mt-2 mb-6">Your AI Should Think Like You</h2>
+
+                <p class="text-lg text-slate-300 mb-4">Most people use AI like a search engine with better grammar. They open ChatGPT, type a question, get an answer, close the tab. Every conversation starts from zero.</p>
+
+                <p class="text-slate-400 mb-4">An AI Second Brain is different. It knows your voice, your expertise, your decision-making patterns. It knows what words you never use. It knows the difference between your professional tone and your personal one. It does not need you to explain who you are every single time.</p>
+
+                <p class="text-slate-400 mb-6">This guide shows you how to build one. Not theory. A working system using Claude Code that you can set up this week.</p>
+
+                <div class="glass-dark rounded-xl p-4 mb-6 border border-yellow-500/20">
+                    <div class="flex items-start gap-3">
+                        <span class="text-yellow-400 text-lg mt-0.5">&#9888;</span>
+                        <div>
+                            <div class="font-heading text-yellow-400 text-sm mb-1">BEFORE YOU START</div>
+                            <p class="text-sm text-slate-400">This guide assumes you have <strong class="text-slate-300">Claude Code</strong> installed and connected to <strong class="text-slate-300">VS Code</strong> (or your editor of choice). If you have not set that up yet, no worries. <a href="https://www.linkedin.com/in/guuswitjes/" class="text-brand-gold hover:underline" target="_blank">Send me a message</a> and I will create a setup guide for that too.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">What you will learn</h3>
+                    <ul class="space-y-2 text-sm text-slate-300">
+                        <li class="flex items-start gap-2"><span class="text-brand-gold mt-1">→</span> How to structure a workspace that scales from one project to many</li>
+                        <li class="flex items-start gap-2"><span class="text-brand-gold mt-1">→</span> How to teach AI your voice, expertise and judgment</li>
+                        <li class="flex items-start gap-2"><span class="text-brand-gold mt-1">→</span> How to build reusable skills and orchestrating agents</li>
+                        <li class="flex items-start gap-2"><span class="text-brand-gold mt-1">→</span> How to keep different contexts (work, side project, personal) completely separate</li>
+                        <li class="flex items-start gap-2"><span class="text-brand-gold mt-1">→</span> How to connect your AI to live data (email, calendar, tasks)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 2: Why Build This -->
+            <section id="why" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">The Problem</span>
+                <h2 class="text-3xl font-heading font-bold text-white mt-2 mb-6">Why a Second Brain, Not Just a Better Prompt</h2>
+
+                <p class="text-slate-400 mb-4">A good prompt gets you a good answer. A Second Brain gets you a good answer that sounds like you, applies your judgment, follows your rules, and fits the context you are working in. Every time. Without repeating yourself.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div class="glass-dark rounded-xl p-5">
+                        <h4 class="font-heading text-brand-coral text-sm uppercase tracking-wider mb-3">Without a Second Brain</h4>
+                        <ul class="space-y-2 text-sm text-slate-400">
+                            <li>Every conversation starts from zero</li>
+                            <li>You re-explain your style every time</li>
+                            <li>Output sounds generic</li>
+                            <li>No memory between sessions</li>
+                            <li>Same mistakes repeated</li>
+                            <li>Work stays in silos</li>
+                        </ul>
+                    </div>
+                    <div class="glass-dark rounded-xl p-5">
+                        <h4 class="font-heading text-brand-green text-sm uppercase tracking-wider mb-3">With a Second Brain</h4>
+                        <ul class="space-y-2 text-sm text-slate-300">
+                            <li>AI knows your context from the start</li>
+                            <li>Voice and rules are built in</li>
+                            <li>Output sounds like you</li>
+                            <li>Knowledge compounds over time</li>
+                            <li>Guardrails prevent recurring errors</li>
+                            <li>Skills chain into workflows</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <blockquote class="my-6">
+                    The difference between using AI and having an AI team is this: one answers questions, the other anticipates them.
+                </blockquote>
+            </section>
+
+            <!-- Section 3: Architecture -->
+            <section id="architecture" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">The Foundation</span>
+                <h2 class="text-3xl font-heading font-bold text-white mt-2 mb-6">Workspace Architecture</h2>
+
+                <p class="text-slate-400 mb-6">A Second Brain is a folder on your computer. Not a SaaS tool, not a database. A structured set of markdown files that Claude Code reads every time it starts working. Here is the structure.</p>
+
+                <div class="glass-dark rounded-xl p-6 mb-8">
+                    <div class="file-tree">
+                        <div><span class="folder">your-workspace/</span></div>
+                        <div class="pl-4"><span class="file">CLAUDE.md</span> <span class="comment">— the roadmap, read on every start</span></div>
+                        <div class="pl-4"><span class="folder">_context/</span> <span class="comment">— who you are (identity layer)</span></div>
+                        <div class="pl-8"><span class="file">knowledge-domains.md</span> <span class="comment">— what you know</span></div>
+                        <div class="pl-8"><span class="file">judgment-patterns.md</span> <span class="comment">— how you decide</span></div>
+                        <div class="pl-8"><span class="file">voice-style.md</span> <span class="comment">— how you sound</span></div>
+                        <div class="pl-8"><span class="file">writing-rules.md</span> <span class="comment">— how you write</span></div>
+                        <div class="pl-4"><span class="folder">_knowledge-base/</span> <span class="comment">— reference material</span></div>
+                        <div class="pl-8"><span class="comment">frameworks, books, research, playbooks</span></div>
+                        <div class="pl-4"><span class="folder">.claude/</span> <span class="comment">— automation layer</span></div>
+                        <div class="pl-8"><span class="folder">agents/</span> <span class="comment">— orchestrators (route requests)</span></div>
+                        <div class="pl-8"><span class="folder">skills/</span> <span class="comment">— executors (do the work)</span></div>
+                        <div class="pl-4"><span class="folder">your-projects/</span> <span class="comment">— actual work output</span></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="glass rounded-xl p-5 text-center cursor-pointer transition-all hover:border-brand-gold/40 hover:scale-[1.02]" onclick="toggleComponentDetail('claude-md')">
+                        <div class="text-3xl mb-2">🗺️</div>
+                        <h4 class="font-heading text-brand-gold mb-1">CLAUDE.md</h4>
+                        <p class="text-xs text-slate-400">The roadmap. Points to everything else. Never duplicates content.</p>
+                        <span class="text-xs text-brand-gold/50 mt-2 block">Click to learn more</span>
+                    </div>
+                    <div class="glass rounded-xl p-5 text-center cursor-pointer transition-all hover:border-brand-gold/40 hover:scale-[1.02]" onclick="toggleComponentDetail('context')">
+                        <div class="text-3xl mb-2">🧬</div>
+                        <h4 class="font-heading text-brand-gold mb-1">_context/</h4>
+                        <p class="text-xs text-slate-400">Your identity. Four pillar files that define your voice and expertise.</p>
+                        <span class="text-xs text-brand-gold/50 mt-2 block">Click to learn more</span>
+                    </div>
+                    <div class="glass rounded-xl p-5 text-center cursor-pointer transition-all hover:border-brand-gold/40 hover:scale-[1.02]" onclick="toggleComponentDetail('dotclaude')">
+                        <div class="text-3xl mb-2">⚡</div>
+                        <h4 class="font-heading text-brand-gold mb-1">.claude/</h4>
+                        <p class="text-xs text-slate-400">Your automation. Skills that execute, agents that orchestrate.</p>
+                        <span class="text-xs text-brand-gold/50 mt-2 block">Click to learn more</span>
+                    </div>
+                </div>
+
+                <!-- Expandable detail panels for the 3 components -->
+                <div id="detail-claude-md" class="component-detail hidden glass rounded-xl p-6 mb-4">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-heading text-brand-gold text-xl">🗺️ CLAUDE.md — The Roadmap</h3>
+                        <button onclick="toggleComponentDetail('claude-md')" class="text-slate-500 hover:text-brand-gold text-sm px-3 py-1 rounded border border-slate-700 hover:border-brand-gold/40 transition-all">close</button>
+                    </div>
+
+                    <p class="text-sm text-slate-300 mb-2">Claude Code reads this file automatically every time a conversation starts. It is the single file that shapes everything the AI does for you.</p>
+                    <p class="text-sm text-slate-400 mb-6">Think of it as the onboarding document you give a new team member. Not the full manual. Just enough to know what the company does, where things are, and what the house rules are.</p>
+
+                    <h4 class="font-heading text-white text-sm uppercase tracking-wider mb-3">How to build it</h4>
+                    <div class="space-y-3 mb-6">
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">1</div>
+                            <div><p class="text-sm text-slate-300">Create a file called <strong class="text-brand-gold">CLAUDE.md</strong> in your project root. Write 3-5 lines about who you are and what this workspace is for.</p></div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">2</div>
+                            <div><p class="text-sm text-slate-300">Add a <strong>"Your Role"</strong> section that tells the AI what perspective to take. "You are my marketing assistant" is better than nothing.</p></div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">3</div>
+                            <div><p class="text-sm text-slate-300">Add <strong>references</strong> to your other files. Write "See: _context/voice-style.md" instead of copying content in. Point, never copy.</p></div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">4</div>
+                            <div><p class="text-sm text-slate-300">Add <strong>guardrails</strong>: what the AI must always do, and must never do. "Never publish without approval. Company data stays in this workspace."</p></div>
+                        </div>
+                    </div>
+
+                    <div class="glass-dark rounded-lg p-5">
+                        <h4 class="text-xs font-heading text-slate-500 uppercase tracking-wider mb-3">Example</h4>
+                        <div class="file-tree text-sm leading-loose">
+                            <div><span class="folder"># CLAUDE.md — My Workspace</span></div>
+                            <div class="mt-2"><span class="comment">## Who I Am</span></div>
+                            <div><span class="file">Marketing lead at [company]. Content, campaigns, team of 4.</span></div>
+                            <div class="mt-2"><span class="comment">## Your Role</span></div>
+                            <div><span class="file">You are my AI marketing assistant. Direct, data-driven, UK English.</span></div>
+                            <div><span class="file">See: _context/voice-style.md for tone</span></div>
+                            <div><span class="file">See: _context/writing-rules.md for grammar</span></div>
+                            <div class="mt-2"><span class="comment">## Guardrails</span></div>
+                            <div><span class="file">- Never publish content without my approval</span></div>
+                            <div><span class="file">- Company data stays in this workspace</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 rounded-lg border border-brand-gold/20 bg-brand-gold/5">
+                        <p class="text-sm text-slate-400"><strong class="text-brand-gold">Key rule:</strong> CLAUDE.md is a roadmap, not a manual. It points to files, never copies their content. One source of truth per concept. Update in one place, used everywhere.</p>
+                    </div>
+                </div>
+
+                <div id="detail-context" class="component-detail hidden glass rounded-xl p-6 mb-4">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-heading text-brand-gold text-xl">🧬 _context/ — The Identity Layer</h3>
+                        <button onclick="toggleComponentDetail('context')" class="text-slate-500 hover:text-brand-gold text-sm px-3 py-1 rounded border border-slate-700 hover:border-brand-gold/40 transition-all">close</button>
+                    </div>
+
+                    <p class="text-sm text-slate-300 mb-2">This is what makes AI output sound like you instead of generic. Without it, the AI writes like "a helpful assistant." With it, the AI writes like someone who has worked with you for months.</p>
+                    <p class="text-sm text-slate-400 mb-6">Four files capture your professional identity. Every skill and agent you build later inherits them automatically.</p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        <div class="glass-dark p-4 rounded-lg text-center">
+                            <div class="text-brand-gold font-heading text-lg mb-1">KNOWLEDGE</div>
+                            <div class="text-xs text-slate-500">What I know</div>
+                            <div class="text-xs text-slate-600 mt-2">3-5 expertise areas with frameworks</div>
+                        </div>
+                        <div class="glass-dark p-4 rounded-lg text-center">
+                            <div class="text-brand-gold font-heading text-lg mb-1">JUDGMENT</div>
+                            <div class="text-xs text-slate-500">How I decide</div>
+                            <div class="text-xs text-slate-600 mt-2">4-6 decision principles</div>
+                        </div>
+                        <div class="glass-dark p-4 rounded-lg text-center">
+                            <div class="text-brand-gold font-heading text-lg mb-1">VOICE</div>
+                            <div class="text-xs text-slate-500">How I sound</div>
+                            <div class="text-xs text-slate-600 mt-2">Tone, metaphors, structure</div>
+                        </div>
+                        <div class="glass-dark p-4 rounded-lg text-center">
+                            <div class="text-brand-gold font-heading text-lg mb-1">RULES</div>
+                            <div class="text-xs text-slate-500">How I write</div>
+                            <div class="text-xs text-slate-600 mt-2">Grammar, format, banlist</div>
+                        </div>
+                    </div>
+
+                    <h4 class="font-heading text-white text-sm uppercase tracking-wider mb-3">How to build it</h4>
+                    <div class="space-y-3 mb-6">
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">1</div>
+                            <div>
+                                <p class="text-sm text-slate-300 font-medium">Start with voice-style.md</p>
+                                <p class="text-xs text-slate-500 mt-1">3-4 adjectives for your tone. Your typical structure (e.g. "Problem, then solution, then action"). What you never sound like. Easiest file to test.</p>
+                            </div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">2</div>
+                            <div>
+                                <p class="text-sm text-slate-300 font-medium">Add writing-rules.md</p>
+                                <p class="text-xs text-slate-500 mt-1">Sentence length, punctuation, and a banlist: 20+ words the AI loves but you would never use. "Delve", "streamline", "cutting-edge". Banning them forces the AI to find alternatives that sound like you.</p>
+                            </div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">3</div>
+                            <div>
+                                <p class="text-sm text-slate-300 font-medium">Add knowledge-domains.md and judgment-patterns.md</p>
+                                <p class="text-xs text-slate-500 mt-1">Add these as you notice the AI making decisions you disagree with. They teach the AI your expertise and your reasoning patterns.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-lg border border-brand-gold/20 bg-brand-gold/5">
+                        <p class="text-sm text-slate-400"><strong class="text-brand-gold">Tip:</strong> Each file should be 50-150 lines. Longer than that and you are overwriting. The AI needs direction, not a novel.</p>
+                    </div>
+                </div>
+
+                <div id="detail-dotclaude" class="component-detail hidden glass rounded-xl p-6 mb-4">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-heading text-brand-gold text-xl">⚡ .claude/ — The Automation Layer</h3>
+                        <button onclick="toggleComponentDetail('dotclaude')" class="text-slate-500 hover:text-brand-gold text-sm px-3 py-1 rounded border border-slate-700 hover:border-brand-gold/40 transition-all">close</button>
+                    </div>
+
+                    <p class="text-sm text-slate-300 mb-2">Without this, you type the same instructions every time. With it, you say "write a post" and the AI runs the full workflow: loads your voice, applies your content strategy, uses your hook templates.</p>
+                    <p class="text-sm text-slate-400 mb-6">Two building blocks: <strong>agents</strong> (routers that decide what to do) and <strong>skills</strong> (specialists that do the actual work).</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="glass-dark rounded-lg p-5">
+                            <div class="text-2xl mb-2">🤖</div>
+                            <h4 class="font-heading text-brand-gold mb-2">Agent</h4>
+                            <p class="text-sm text-slate-400">The orchestrator. It does not do the work itself. It routes your request to the right skill or chains multiple skills together.</p>
+                            <p class="text-xs text-slate-600 mt-3 italic">"Handle content" could mean write, repurpose, schedule, or validate. The agent decides.</p>
+                        </div>
+                        <div class="glass-dark rounded-lg p-5">
+                            <div class="text-2xl mb-2">⚡</div>
+                            <h4 class="font-heading text-brand-gold mb-2">Skill</h4>
+                            <p class="text-sm text-slate-400">The executor. Does one thing well. Has a SKILL.md with instructions and a knowledge/ folder with reference files. Can work standalone or as part of an agent.</p>
+                            <p class="text-xs text-slate-600 mt-3 italic">"Write a LinkedIn post in my voice, following my content strategy."</p>
+                        </div>
+                    </div>
+
+                    <h4 class="font-heading text-white text-sm uppercase tracking-wider mb-3">How to build it</h4>
+                    <div class="space-y-3 mb-6">
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">1</div>
+                            <div>
+                                <p class="text-sm text-slate-300 font-medium">Pick one task you do weekly</p>
+                                <p class="text-xs text-slate-500 mt-1">Something repeatable with a clear output. Writing posts, generating reports, auditing pages.</p>
+                            </div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">2</div>
+                            <div>
+                                <p class="text-sm text-slate-300 font-medium">Create a skill folder with SKILL.md</p>
+                                <p class="text-xs text-slate-500 mt-1">Write trigger words (when to activate), workflow steps (what to do), and output format (what the result looks like).</p>
+                            </div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">3</div>
+                            <div>
+                                <p class="text-sm text-slate-300 font-medium">Add a knowledge/ subfolder</p>
+                                <p class="text-xs text-slate-500 mt-1">Templates, examples, frameworks. The reference material the skill needs to do its job well.</p>
+                            </div>
+                        </div>
+                        <div class="glass-dark rounded-lg p-4 flex items-start gap-4">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold text-sm w-8 h-8 min-w-[2rem]">4</div>
+                            <div>
+                                <p class="text-sm text-slate-300 font-medium">Test, adjust, expand</p>
+                                <p class="text-xs text-slate-500 mt-1">Test with real work. When you have 3+ related skills, create an agent to route between them.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-dark rounded-lg p-5">
+                        <h4 class="text-xs font-heading text-slate-500 uppercase tracking-wider mb-3">Example: skill anatomy</h4>
+                        <div class="file-tree text-sm leading-loose">
+                            <div><span class="folder">.claude/skills/linkedin-post-generator/</span></div>
+                            <div class="pl-4"><span class="file">SKILL.md</span> <span class="comment">— trigger words + workflow steps</span></div>
+                            <div class="pl-4"><span class="folder">knowledge/</span></div>
+                            <div class="pl-8"><span class="file">post-frameworks.md</span> <span class="comment">— content structures</span></div>
+                            <div class="pl-8"><span class="file">hook-templates.md</span> <span class="comment">— 12 opening line patterns</span></div>
+                            <div class="pl-8"><span class="file">performance-insights.md</span> <span class="comment">— what works (from data)</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 rounded-lg border border-brand-gold/20 bg-brand-gold/5">
+                        <p class="text-sm text-slate-400"><strong class="text-brand-gold">The rule:</strong> Single task = skill. Multiple related tasks = agent. Start with skills. Agents emerge naturally when you have enough skills that grouping them makes sense.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: Identity Layer -->
+            <section id="identity" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">The Core</span>
+                <h2 class="text-3xl font-heading font-bold text-white mt-2 mb-6">The Identity Layer: Teaching AI Who You Are</h2>
+
+                <p class="text-slate-400 mb-6">This is the part most people skip, and it is the part that makes the biggest difference. Four files in _context/ that together define your professional identity. Once written, every skill and agent you build inherits them automatically.</p>
+
+                <!-- Pillar 1 -->
+                <div class="expandable glass-dark rounded-xl p-5 mb-4" onclick="toggleExpand(this)">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold">1</div>
+                            <div>
+                                <h3 class="font-heading text-white text-lg">KNOWLEDGE DOMAINS</h3>
+                                <p class="text-xs text-slate-400">What you know. Your areas of expertise.</p>
+                            </div>
+                        </div>
+                        <span class="arrow text-brand-gold text-lg">▶</span>
+                    </div>
+                    <div class="expandable-content">
+                        <div class="mt-4 pt-4 border-t border-brand-gold/10 text-sm text-slate-400 space-y-3">
+                            <p>List 3-5 domains where you have real expertise. Not everything you know. The areas where you can make judgment calls that a generic AI cannot.</p>
+                            <p>For each domain, describe: what you know, how deep your knowledge goes, what frameworks or mental models you use, and what makes your perspective different from the mainstream.</p>
+                            <div class="glass p-4 rounded-lg mt-3">
+                                <h4 class="text-xs font-heading text-brand-gold uppercase tracking-wider mb-2">Example</h4>
+                                <p class="text-xs text-slate-400 font-mono">## AI Adoption & Practical Application<br>
+                                I frame AI as a colleague, not a tool. My background in [field] translates directly to helping teams adopt AI because [specific reason]. I use the [framework name] approach: [brief description].</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 2 -->
+                <div class="expandable glass-dark rounded-xl p-5 mb-4" onclick="toggleExpand(this)">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold">2</div>
+                            <div>
+                                <h3 class="font-heading text-white text-lg">JUDGMENT PATTERNS</h3>
+                                <p class="text-xs text-slate-400">How you decide. Your decision-making principles.</p>
+                            </div>
+                        </div>
+                        <span class="arrow text-brand-gold text-lg">▶</span>
+                    </div>
+                    <div class="expandable-content">
+                        <div class="mt-4 pt-4 border-t border-brand-gold/10 text-sm text-slate-400 space-y-3">
+                            <p>These are the rules that guide your decisions when there is no clear right answer. The patterns that people who work with you would recognise as "that is so you."</p>
+                            <p>Write 4-6 judgment patterns. Each one should describe: the principle, when it applies, and a concrete example of how it plays out in practice.</p>
+                            <div class="glass p-4 rounded-lg mt-3">
+                                <h4 class="text-xs font-heading text-brand-gold uppercase tracking-wider mb-2">Example</h4>
+                                <p class="text-xs text-slate-400 font-mono">## Start and Adjust<br>
+                                Launch when valuable, not when perfect. Living documents beat polished ones that never ship. I gather feedback from practice, not from planning meetings. If 80% is good enough to learn from, ship it.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 3 -->
+                <div class="expandable glass-dark rounded-xl p-5 mb-4" onclick="toggleExpand(this)">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold">3</div>
+                            <div>
+                                <h3 class="font-heading text-white text-lg">VOICE STYLE</h3>
+                                <p class="text-xs text-slate-400">How you sound. Your tone, metaphors, patterns.</p>
+                            </div>
+                        </div>
+                        <span class="arrow text-brand-gold text-lg">▶</span>
+                    </div>
+                    <div class="expandable-content">
+                        <div class="mt-4 pt-4 border-t border-brand-gold/10 text-sm text-slate-400 space-y-3">
+                            <p>This is what makes AI output sound like you instead of generic. Include: your core tone (3-4 adjectives), your typical sentence structure, metaphors you naturally use, phrases you say often, and what you never sound like.</p>
+                            <p>The "what you never sound like" part is just as important. If you are direct, say "never hedging or diplomatic." If you use humour, describe what kind.</p>
+                            <div class="glass p-4 rounded-lg mt-3">
+                                <h4 class="text-xs font-heading text-brand-gold uppercase tracking-wider mb-2">Example</h4>
+                                <p class="text-xs text-slate-400 font-mono">Core tone: Direct, practical, honest.<br>
+                                Structure: Problem → Solution → Action. Always.<br>
+                                Metaphors: AI as colleague, not tool. Newsletter as architecture, not content.<br>
+                                Never: corporate speak, hedging, passive voice, "I would suggest..."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 4 -->
+                <div class="expandable glass-dark rounded-xl p-5 mb-4" onclick="toggleExpand(this)">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="step-num bg-brand-gold/20 text-brand-gold">4</div>
+                            <div>
+                                <h3 class="font-heading text-white text-lg">WRITING RULES</h3>
+                                <p class="text-xs text-slate-400">How you write. Grammar, format, constraints.</p>
+                            </div>
+                        </div>
+                        <span class="arrow text-brand-gold text-lg">▶</span>
+                    </div>
+                    <div class="expandable-content">
+                        <div class="mt-4 pt-4 border-t border-brand-gold/10 text-sm text-slate-400 space-y-3">
+                            <p>The mechanical rules. Sentence length, punctuation preferences, formatting standards, and a list of words you never use (a "banlist").</p>
+                            <p>The banlist is surprisingly powerful. AI loves words like "delve", "leverage", "streamline", "cutting-edge". If those words are not in your vocabulary, ban them. The AI will find better alternatives that sound like you.</p>
+                            <div class="glass p-4 rounded-lg mt-3">
+                                <h4 class="text-xs font-heading text-brand-gold uppercase tracking-wider mb-2">Example</h4>
+                                <p class="text-xs text-slate-400 font-mono">Sentences: Short. Active voice. Fragments OK for rhythm.<br>
+                                Punctuation: No exclamation marks. No em dashes.<br>
+                                Language: UK English, not US.<br>
+                                Banned: delve, leverage, streamline, cutting-edge, game-changer, deep dive, at the end of the day...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6 mt-6">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">How to write your pillar files</h3>
+                    <p class="text-sm text-slate-400 mb-3">Do not try to write these in one sitting. Start with voice-style.md (easiest to test) and writing-rules.md (easiest to define). Then add knowledge-domains and judgment-patterns as you notice the AI making decisions you disagree with.</p>
+                    <p class="text-sm text-slate-400">Each file should be 50-150 lines. Longer than that and you are overwriting. The AI needs direction, not a novel.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: Skills & Agents -->
+            <section id="skills" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">The Automation Layer</span>
+                <h2 class="text-3xl font-heading font-bold text-white mt-2 mb-6">Agents and Skills: Building Your AI Team</h2>
+
+                <p class="text-slate-400 mb-6">Once your identity layer is in place, you can build reusable automations. There are two types: agents (they decide what to do) and skills (they do the actual work). An agent orchestrates. A skill executes. Skills can work standalone or as part of an agent.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="glass rounded-xl p-6">
+                        <div class="text-3xl mb-3">🤖</div>
+                        <h3 class="font-heading text-brand-gold text-xl mb-2">AGENT</h3>
+                        <p class="text-sm text-slate-400 mb-3">An orchestrator. It does not do the work itself. It routes your request to the right skill or chain of skills.</p>
+                        <div class="text-xs text-slate-500 space-y-1">
+                            <div>Has an AGENT.md (~100 lines)</div>
+                            <div>Contains a routing table (trigger → skill)</div>
+                            <div>Defines chains (skill A → skill B → skill C)</div>
+                            <div>Has guardrails (what it must never do)</div>
+                        </div>
+                        <div class="mt-4 glass-dark rounded-lg p-3">
+                            <div class="text-xs text-slate-500 mb-1">Examples:</div>
+                            <div class="text-xs text-brand-gold">content-creator (18 skills), seo-optimizer (8 skills), today (5 skills)</div>
+                        </div>
+                    </div>
+                    <div class="glass rounded-xl p-6">
+                        <div class="text-3xl mb-3">⚡</div>
+                        <h3 class="font-heading text-brand-gold text-xl mb-2">SKILL</h3>
+                        <p class="text-sm text-slate-400 mb-3">A single-task executor. Does one thing well. Can work standalone or as part of an agent. Think of it as a specialist on your team.</p>
+                        <div class="text-xs text-slate-500 space-y-1">
+                            <div>Has a SKILL.md with instructions</div>
+                            <div>Has a knowledge/ folder with reference files</div>
+                            <div>Reads _context/ pillar files for voice and rules</div>
+                            <div>Triggered by specific words or phrases</div>
+                        </div>
+                        <div class="mt-4 glass-dark rounded-lg p-3">
+                            <div class="text-xs text-slate-500 mb-1">Examples:</div>
+                            <div class="text-xs text-brand-gold">linkedin-post-generator, meal-planner, seo-page-auditor, session-report</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-dark rounded-xl p-6 mb-6">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">Skill Anatomy</h3>
+                    <div class="file-tree">
+                        <div><span class="folder">.claude/skills/linkedin-post-generator/</span></div>
+                        <div class="pl-4"><span class="file">SKILL.md</span> <span class="comment">— trigger words, workflow steps, output format</span></div>
+                        <div class="pl-4"><span class="folder">knowledge/</span></div>
+                        <div class="pl-8"><span class="file">post-frameworks.md</span> <span class="comment">— content structures</span></div>
+                        <div class="pl-8"><span class="file">hook-templates.md</span> <span class="comment">— opening line patterns</span></div>
+                        <div class="pl-8"><span class="file">performance-insights.md</span> <span class="comment">— what works based on data</span></div>
+                    </div>
+                </div>
+
+                <div class="glass-dark rounded-xl p-6 mb-6">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">Inside a SKILL.md</h3>
+                    <p class="text-xs text-slate-400 mb-4">Every skill starts with YAML frontmatter. This tells the AI when to activate it and what it does. Below that: the actual workflow instructions.</p>
+                    <div class="glass rounded-lg p-4 font-mono text-xs leading-relaxed">
+                        <div class="text-slate-500">---</div>
+                        <div><span class="text-blue-400">name:</span> <span class="text-slate-300">linkedin-post-generator</span></div>
+                        <div><span class="text-blue-400">description:</span> <span class="text-slate-300">Generates a LinkedIn post based on brand voice and content frameworks.</span></div>
+                        <div><span class="text-blue-400">patterns:</span></div>
+                        <div class="pl-4"><span class="text-slate-300">- "write a linkedin post"</span></div>
+                        <div class="pl-4"><span class="text-slate-300">- "generate social media content"</span></div>
+                        <div class="text-slate-500">---</div>
+                        <div class="mt-3 text-slate-500"># Workflow Steps</div>
+                        <div class="text-slate-500">## 1. Load context files (_context/voice-style.md, writing-rules.md)</div>
+                        <div class="text-slate-500">## 2. Determine audience persona</div>
+                        <div class="text-slate-500">## 3. Generate post with hook, body, takeaway, CTA</div>
+                        <div class="text-slate-500">## 4. Run quality check against banlist</div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3">The <span class="text-blue-400">patterns</span> field is the magic: when you type "write a linkedin post", the AI automatically loads this skill and follows the workflow. No manual file pointing needed.</p>
+                </div>
+
+                <div class="glass rounded-xl p-6">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">The Decision Rule</h3>
+                    <p class="text-sm text-slate-400 mb-3">When should something be an agent vs. a skill?</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="p-3 rounded border border-brand-gold/20">
+                            <div class="text-brand-gold font-heading mb-1">Make it an AGENT when:</div>
+                            <div class="text-slate-400">It needs to route. "Handle content" could mean write, repurpose, schedule, or validate. That is an agent with skills underneath.</div>
+                        </div>
+                        <div class="p-3 rounded border border-brand-gold/20">
+                            <div class="text-brand-gold font-heading mb-1">Make it a SKILL when:</div>
+                            <div class="text-slate-400">It does one specific thing. "Write a LinkedIn post." "Audit an SEO page." "Generate a meal plan." Skills are the building blocks.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: Context Isolation -->
+            <section id="isolation" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">Critical Concept</span>
+                <h2 class="text-3xl font-heading font-bold text-white mt-2 mb-6">Context Isolation: Keeping Worlds Separate</h2>
+
+                <p class="text-slate-400 mb-6">If you use AI for more than one role (and most people do), you need context isolation. It means: data from one context never leaks into another. Your employer's information never shows up in your side project content. Your personal health data never appears in work output.</p>
+
+                <!-- Schematic Tree Diagram -->
+                <div class="glass-dark rounded-xl p-8 mb-6">
+
+                    <!-- CLAUDE.md block -->
+                    <div class="text-center mb-2">
+                        <div class="inline-block glass rounded-xl px-6 py-3 border-brand-gold/30">
+                            <div class="font-heading text-brand-gold text-lg tracking-wide">CLAUDE.md</div>
+                            <div class="text-xs text-slate-400 mt-1">Your identity. Loaded on every conversation.</div>
+                        </div>
+                    </div>
+
+                    <!-- Connector -->
+                    <div class="flex justify-center my-1"><div class="w-px h-5 bg-brand-gold/30"></div></div>
+                    <div class="text-center text-xs text-slate-500 mb-1">reads</div>
+                    <div class="flex justify-center mb-2"><div class="w-px h-5 bg-brand-gold/30"></div></div>
+
+                    <!-- _context/ block -->
+                    <div class="text-center mb-2">
+                        <div class="inline-block glass rounded-xl px-6 py-3">
+                            <div class="font-heading text-brand-gold text-base tracking-wide">_context/</div>
+                            <div class="text-xs text-slate-400 mt-1">Shared identity: voice, knowledge, judgment, rules</div>
+                        </div>
+                    </div>
+
+                    <!-- Connector: splits into three -->
+                    <div class="flex justify-center my-1"><div class="w-px h-5 bg-brand-gold/30"></div></div>
+                    <div class="text-center text-xs text-slate-500 mb-1">inherited by</div>
+                    <div class="flex justify-center mb-2">
+                        <div class="relative w-[420px] h-5">
+                            <div class="absolute top-0 left-1/2 w-px h-2.5 bg-brand-gold/30 -translate-x-px"></div>
+                            <div class="absolute top-2.5 left-[16.67%] right-[16.67%] h-px bg-brand-gold/30"></div>
+                            <div class="absolute top-2.5 left-[16.67%] w-px h-2.5 bg-brand-gold/30"></div>
+                            <div class="absolute top-2.5 left-1/2 w-px h-2.5 bg-brand-gold/30 -translate-x-px"></div>
+                            <div class="absolute top-2.5 right-[16.67%] w-px h-2.5 bg-brand-gold/30"></div>
+                        </div>
+                    </div>
+
+                    <!-- Three Worlds -->
+                    <div class="grid grid-cols-3 gap-3 mb-2">
+                        <div class="glass rounded-xl p-4 text-center border-green-500/20">
+                            <div class="w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto mb-2">
+                                <span class="text-green-400 text-xs font-heading">P</span>
+                            </div>
+                            <div class="font-heading text-green-400 text-sm">PERSONAL</div>
+                            <div class="text-xs text-slate-500 mt-1">Health, finance, private</div>
+                            <div class="text-xs text-slate-600 mt-2 space-y-0.5">
+                                <div>_context/ <span class="text-slate-500">own voice</span></div>
+                                <div>.claude/ <span class="text-slate-500">own skills</span></div>
+                            </div>
+                        </div>
+                        <div class="glass rounded-xl p-4 text-center border-yellow-500/20">
+                            <div class="w-8 h-8 rounded-full bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center mx-auto mb-2">
+                                <span class="text-yellow-400 text-xs font-heading">S</span>
+                            </div>
+                            <div class="font-heading text-yellow-400 text-sm">SIDE PROJECT</div>
+                            <div class="text-xs text-slate-500 mt-1">Brand, content, marketing</div>
+                            <div class="text-xs text-slate-600 mt-2 space-y-0.5">
+                                <div>_context/ <span class="text-slate-500">own voice</span></div>
+                                <div>.claude/ <span class="text-slate-500">own skills</span></div>
+                            </div>
+                        </div>
+                        <div class="glass rounded-xl p-4 text-center border-blue-500/20">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mx-auto mb-2">
+                                <span class="text-blue-400 text-xs font-heading">W</span>
+                            </div>
+                            <div class="font-heading text-blue-400 text-sm">WORK</div>
+                            <div class="text-xs text-slate-500 mt-1">Employer, team, internal</div>
+                            <div class="text-xs text-slate-600 mt-2 space-y-0.5">
+                                <div>_context/ <span class="text-slate-500">own voice</span></div>
+                                <div>.claude/ <span class="text-slate-500">own skills</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Context isolation indicator -->
+                    <div class="flex justify-center mt-3">
+                        <div class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-red-500/20 bg-red-500/5">
+                            <div class="w-2 h-2 rounded-full bg-red-500/60"></div>
+                            <span class="text-xs text-red-400/80">Context isolation: these worlds never mix</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="glass rounded-xl p-6">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">How It Works</h3>
+                    <p class="text-sm text-slate-400 mb-3">Each world has its own CLAUDE.md, its own _context/ with pillar files, and its own .claude/ with skills and agents. They inherit shared patterns from the root (your core identity stays consistent), but they add their own voice, rules and knowledge on top.</p>
+                    <p class="text-sm text-slate-400">The CLAUDE.md in each world states explicitly: "Data from this context never appears in [other context]." The AI follows this instruction because it is in the file it reads on every start.</p>
+                </div>
+            </section>
+
+            <!-- Section 7: Live Connections -->
+            <section id="connections" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">Advanced</span>
+                <h2 class="text-3xl font-heading font-bold text-white mt-2 mb-6">Live Connections: MCP Servers</h2>
+
+                <p class="text-slate-400 mb-6">A Second Brain becomes significantly more powerful when it can read live data. Claude Code supports MCP (Model Context Protocol) servers that connect to external services. This means your AI can check your calendar, read your email, pull task data, and access health metrics.</p>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                    <div class="glass-dark rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-2">📧</div>
+                        <div class="text-xs text-brand-gold font-heading">EMAIL</div>
+                        <div class="text-xs text-slate-500">Gmail, Outlook</div>
+                    </div>
+                    <div class="glass-dark rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-2">📅</div>
+                        <div class="text-xs text-brand-gold font-heading">CALENDAR</div>
+                        <div class="text-xs text-slate-500">Google Calendar</div>
+                    </div>
+                    <div class="glass-dark rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-2">✅</div>
+                        <div class="text-xs text-brand-gold font-heading">TASKS</div>
+                        <div class="text-xs text-slate-500">ClickUp, Linear</div>
+                    </div>
+                    <div class="glass-dark rounded-xl p-4 text-center">
+                        <div class="text-2xl mb-2">⌚</div>
+                        <div class="text-xs text-brand-gold font-heading">HEALTH</div>
+                        <div class="text-xs text-slate-500">Polar, Withings</div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6 mb-6">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">Example: The Daily Briefing</h3>
+                    <p class="text-sm text-slate-400 mb-3">Imagine saying "good morning" and getting back:</p>
+                    <div class="glass-dark rounded-lg p-4 text-sm space-y-2">
+                        <div class="flex items-start gap-2"><span class="text-brand-green">⚡</span><span class="text-slate-300"><strong>Energy:</strong> Deep sleep 1h42m (good). Best focus window: 9-12. Schedule meetings after 14:00.</span></div>
+                        <div class="flex items-start gap-2"><span class="text-brand-blue">📅</span><span class="text-slate-300"><strong>Agenda:</strong> 3 meetings today. 10:00 team sync, 13:00 client call, 15:30 1-on-1. Gap at 11:00 for deep work.</span></div>
+                        <div class="flex items-start gap-2"><span class="text-brand-coral">✅</span><span class="text-slate-300"><strong>Tasks:</strong> 2 overdue, 4 due today. Priority: finish proposal (due 14:00).</span></div>
+                        <div class="flex items-start gap-2"><span class="text-brand-gold">📧</span><span class="text-slate-300"><strong>Inbox:</strong> 3 unanswered requiring action. 1 urgent from [name].</span></div>
+                    </div>
+                </div>
+
+                <p class="text-sm text-slate-400">This is built with 5 skills chained through one agent. Each skill calls its MCP server, formats the data, and the agent combines it into one briefing. All running locally on your machine.</p>
+
+                <div class="glass rounded-xl p-6 mt-6 border-red-500/20">
+                    <h3 class="font-heading text-red-400 text-lg mb-3">Securing Your API Keys</h3>
+                    <p class="text-sm text-slate-400 mb-4">MCP servers need API keys to connect. Never store those keys inside your workspace. The AI can read your workspace files, which means it can see any key you put there. Instead: store keys outside the workspace and inject them as environment variables at startup.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="p-3 rounded border border-red-500/20 bg-red-500/5">
+                            <div class="font-heading text-red-400 text-sm mb-2">DO NOT</div>
+                            <div class="font-mono text-xs text-slate-400 space-y-1">
+                                <div class="text-red-400/60">// .claude/mcp/mcp.json</div>
+                                <div>"api_key": "sk-abc123..."</div>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-2">Key sits in workspace. AI can read it. Git can leak it.</div>
+                        </div>
+                        <div class="p-3 rounded border border-green-500/20 bg-green-500/5">
+                            <div class="font-heading text-green-400 text-sm mb-2">DO</div>
+                            <div class="font-mono text-xs text-slate-400 space-y-1">
+                                <div class="text-green-400/60">// secrets folder (outside workspace)</div>
+                                <div>~/.secrets/clickup-api-key.txt</div>
+                                <div class="mt-1 text-green-400/60">// startup script loads them</div>
+                                <div>export CLICKUP_KEY=$(cat ~/.secrets/...)</div>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-2">Key stays outside. Injected at runtime. Never in git.</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500">Also add your secrets folder, .env files, and mcp.json to .gitignore. If you ever accidentally commit a key: rotate it immediately, do not just delete the commit.</p>
+                </div>
+            </section>
+
+            <!-- Section 8: Getting Started -->
+            <section id="start" class="mb-20 scroll-mt-20">
+                <span class="text-brand-gold font-heading text-xs tracking-widest uppercase">Action</span>
+                <h2 class="text-3xl font-heading font-bold text-white mt-2 mb-6">Getting Started This Week</h2>
+
+                <p class="text-slate-400 mb-6">You do not need to build everything at once. Start small, iterate, expand. Here is a practical sequence.</p>
+
+                <div class="space-y-4 mb-8">
+                    <div class="glass-dark rounded-xl p-5 flex items-start gap-4">
+                        <div class="step-num bg-brand-gold text-brand-dark">1</div>
+                        <div>
+                            <h3 class="font-heading text-white text-lg">CREATE YOUR WORKSPACE</h3>
+                            <p class="text-sm text-slate-400 mt-1">Create a folder. Add CLAUDE.md. Write one paragraph about who you are and what this workspace is for. That is enough to start.</p>
+                        </div>
+                    </div>
+                    <div class="glass-dark rounded-xl p-5 flex items-start gap-4">
+                        <div class="step-num bg-brand-gold text-brand-dark">2</div>
+                        <div>
+                            <h3 class="font-heading text-white text-lg">WRITE YOUR VOICE STYLE</h3>
+                            <p class="text-sm text-slate-400 mt-1">Create _context/voice-style.md. Describe how you sound in 3-4 adjectives, your typical structure, and 10 words you never use. Test it by asking the AI to write something and see if it sounds like you.</p>
+                        </div>
+                    </div>
+                    <div class="glass-dark rounded-xl p-5 flex items-start gap-4">
+                        <div class="step-num bg-brand-gold text-brand-dark">3</div>
+                        <div>
+                            <h3 class="font-heading text-white text-lg">ADD WRITING RULES</h3>
+                            <p class="text-sm text-slate-400 mt-1">Create _context/writing-rules.md. Sentence length, punctuation preferences, and a banlist of AI words you hate. Start with 20 banned words and grow it over time.</p>
+                        </div>
+                    </div>
+                    <div class="glass-dark rounded-xl p-5 flex items-start gap-4">
+                        <div class="step-num bg-brand-gold text-brand-dark">4</div>
+                        <div>
+                            <h3 class="font-heading text-white text-lg">BUILD YOUR FIRST SKILL</h3>
+                            <p class="text-sm text-slate-400 mt-1">Pick one task you do at least weekly. Create .claude/skills/[task-name]/SKILL.md with clear instructions. Add a knowledge/ folder with reference material. Test it with real work.</p>
+                        </div>
+                    </div>
+                    <div class="glass-dark rounded-xl p-5 flex items-start gap-4">
+                        <div class="step-num bg-brand-gold text-brand-dark">5</div>
+                        <div>
+                            <h3 class="font-heading text-white text-lg">ITERATE AND EXPAND</h3>
+                            <p class="text-sm text-slate-400 mt-1">Use it for a week. Notice what the AI gets wrong. Update your pillar files. Add more skills. When you have 3+ related skills, create an agent to route between them. Grow organically.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6 mb-8">
+                    <h3 class="font-heading text-brand-gold text-lg mb-3">The Rule That Matters Most</h3>
+                    <p class="text-sm text-slate-400">Do not build more than you can test. Build one skill, use it for a week, iterate. Then build the next one. A Second Brain grows through use, not through architecture. Three skills you use daily are worth more than thirty you built but never touch.</p>
+                </div>
+
+                <div class="glass-dark rounded-xl p-6 text-center">
+                    <h3 class="font-heading text-brand-gold text-2xl mb-3">START SMALL. ITERATE. COMPOUND.</h3>
+                    <p class="text-slate-400 text-sm mb-4">The best Second Brain is the one you actually use.<br>Build one thing this week. Use it. Improve it. Then build the next.</p>
+                    <p class="text-xs text-slate-500">Built by <a href="https://www.linkedin.com/in/guuswitjes/" class="text-brand-gold hover:underline" target="_blank">Guus Witjes</a> at Step Ahead AI. Based on a live system running 11 agents and 58 skills.</p>
+                    <p class="text-xs text-slate-500 mt-2"><a href="https://www.linkedin.com/in/guuswitjes/" class="text-brand-gold hover:underline" target="_blank">Connect on LinkedIn</a> · <a href="https://stepaheadai.substack.com/" class="text-brand-gold hover:underline" target="_blank">Read the Substack</a></p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        function go(id) {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+            updateNav(id);
+            const menu = document.getElementById('mobile-menu');
+            if (!menu.classList.contains('hidden')) toggleMobileMenu();
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function updateNav(activeId) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.toggle('active', item.getAttribute('onclick')?.includes(activeId));
+            });
+        }
+
+        function toggleComponentDetail(id) {
+            const panel = document.getElementById('detail-' + id);
+            const allPanels = document.querySelectorAll('.component-detail');
+
+            if (panel.classList.contains('hidden')) {
+                // Close all others first
+                allPanels.forEach(p => {
+                    if (p.id !== 'detail-' + id) p.classList.add('hidden');
+                });
+                panel.classList.remove('hidden');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        function toggleExpand(el) {
+            el.classList.toggle('open');
+            const content = el.querySelector('.expandable-content');
+            content.classList.toggle('open');
+        }
+
+        // Scroll spy
+        const sections = ['intro', 'why', 'architecture', 'identity', 'skills', 'isolation', 'connections', 'start'];
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    updateNav(entry.target.id);
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+
+        window.addEventListener('load', () => {
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
